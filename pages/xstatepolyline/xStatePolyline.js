@@ -16,11 +16,42 @@ let polyline // La polyline en cours de construction;
 
 const polylineMachine = createMachine(
     {
-        /** @xstate-layout N4IgpgJg5mDOIC5gF8A0IB2B7CdGgAcsAbATwBkBLDMfEI2SgF0qwzoA9EBaANnVI9eAOgAM4iZMkB2ZGnokK1MMMoRitJAsYs2nRABYATAMQAOAIzCD0gJwXetgwGZezgw9ty5QA */
+        /** @xstate-layout N4IgpgJg5mDOIC5QAcD2AbAngGQJYDswA6XCdMAYgFkB5AVQGUBRAYWwEkWBpAbQAYAuohSpYuAC65U+YSAAeiAIwAmIgHZlANgCcm5Ys1rFAFmMAONZoA0ITEpNFlagMynnfZds+LtagL5+NmhYeIREACIASgCCAOrsAHIA4tT0zGycvIKyaGKS0rIKCMaamup8uorO2hWKAKx8ZjZ2CJ7aRK6aZobVamqNynUBQRg4BMRRcYkptIysHNw8ikJIILkSUjKrRSWKRIZmzkZazj6WzYjGimr7ato1fNeadQbOmsNro6ETMfHJFEwEgAVJiRfgrER5TaFJSDIg+LpHRSPOpmPjGZwXVqWfbKPindFOPjE5QfYJjMKTP4pABC0W4DAACvSmOCcqINgVtpc6s4iHxNIoDMozCUBc46nUsQBaZyqYwVTSmKr1e41Yxkr7jCK-aYAhgsaKM1nZVbrfJbUBFfR1IiHYx1PQKx4lCUyuVEBW6ZWnOpqxQBQIgfCoCBwdkhcbsqFcq2IaU+PZmOpqDF+67GEX4mVC9o1b3VKpK7RVTWRsKkcjRzmW+Txkx85OpiUl1NZzG2JRvIhq7Ro7pdMx9-xB8nfHVTZLVi0whDuMquZRHPR40xaLFVEcBIA */
         id: "polyLine",
         initial: "idle",
         states : {
             idle: {
+                on: {
+                    MOUSECLICK: 
+                        {target : "DRAWING",
+                        actions : "createLine"}
+                }
+            },
+
+            DRAWING: {
+                on: {
+                    MOUSECLICK: [{
+                        target: "DRAWING",
+                        internal: true,
+                        cond: "pasPlein",
+                        actions : "setLastPoint"
+                    }, {
+                        actions : "saveLine"
+                    }],
+
+                    ENTER: {
+                        actions: "saveLine",
+                        cond: "plusDeDeuxPoints"
+                    },
+
+                    BACKSPACE: {
+                        actions: "removeLastPoint",
+                        cond: "plusDeDeuxPoints"
+                    },
+
+                    ESCAPE: 
+                    {actions:"abandon"}
+                }
             }
         }
     },
