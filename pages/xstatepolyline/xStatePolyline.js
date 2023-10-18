@@ -16,45 +16,57 @@ let polyline // La polyline en cours de construction;
 
 const polylineMachine = createMachine(
     {
-        /** @xstate-layout N4IgpgJg5mDOIC5QAcD2AbAngGQJYDswA6XCdMAYgFkB5AVQGUBRAYWwEkWBpAbQAYAuohSpYuAC65U+YSAAeiAIwAmIgHZlANgCcm5Ys1rFAFmMAONZoA0ITEpNFlagMynnfZds+LtagL5+NmhYeIREACIASgCCAOrsAHIA4tT0zGycvIKyaGKS0rIKCMaamup8uorO2hWKAKx8ZjZ2CJ7aRK6aZobVamqNynUBQRg4BMRRcYkptIysHNw8ikJIILkSUjKrRSWKRIZmzkZazj6WzYjGimr7ato1fNeadQbOmsNro6ETMfHJFEwEgAVJiRfgrER5TaFJSDIg+LpHRSPOpmPjGZwXVqWfbKPindFOPjE5QfYJjMKTP4pABC0W4DAACvSmOCcqINgVtpc6s4iHxNIoDMozCUBc46nUsQBaZyqYwVTSmKr1e41Yxkr7jCK-aYAhgsaKM1nZVbrfJbUBFfR1IiHYx1PQKx4lCUyuVEBW6ZWnOpqxQBQIgfCoCBwdkhcbsqFcq2IaU+PZmOpqDF+67GEX4mVC9o1b3VKpK7RVTWRsKkcjRzmW+Txkx85OpiUl1NZzG2JRvIhq7Ro7pdMx9-xB8nfHVTZLVi0whDuMquZRHPR40xaLFVEcBIA */
+        /** @xstate-layout N4IgpgJg5mDOIC5QAcD2AbAngGQJYDswA6XCdMAYgFkB5AVQGUBRAYWwEkWBpAbQAYAuohSpYuAC65U+YSAAeiAEx8iAFgCMAVgDM2vgDZNAdgAcm85oA0ITInWL1RAJz71Ro4o07t+vuoC+-tZoWHiERBAATgCGAO4EUBRMsADG0chg-EJIIGhiktKyCggAtBpEZiaqTjpGTtVOLta2COr6RIp6VVrmTnwmbYHBGDgExFFxCRQAQtEpANawyHOZgrJ5ElIyOcWqus6uio0eTkbmqkbNiCXamkR8nqqqhtom9Q5GQ7kjYeMx8fhErRGKwONwsutRJtCjtEE9FB11Oo9PpXiYTB4rDYlPYiEY+E5tE83k4kYpNIoviFRuEJgCgfRmGxOLx1NkRPktkU4dojER1CY+HwnmTXHwsS1VH41I1Ua58YpMVSfmMIv8psDmLQAGpMCE5DYFbagYrqFxEXz6VyC-TuIwCxRXBCKvmoxT6UnGYVIpzK0KqulTJj4cRgSL6jnQ43ya6KOMHYUuHxORQmTxOkpVIjGJFGW6qVNmkz6QJBED4VAQOCQ-2ESGcmEm2P4hPVOUptOqDNuRx50wXDE6F4lsvU34kMhgetR7mldR7CrGPaaUlGAuC7RO5HtRqNQXF-TopwYv00v6TQHTo2zhx3Uy84UY3RPAtb3n3IUPGru5SC1Sl-wgA */
         id: "polyLine",
+
         initial: "idle",
         states : {
             idle: {
                 on: {
-                    MOUSECLICK: 
-                        {target : "DRAWING",
-                        actions : "createLine"}
+                    MOUSECLICK: {
+                        actions : "createLine",
+                        target : "drawing"}
                 }
             },
 
-            DRAWING: {
+            drawing: {
                 on: {
+                    Escape: {actions :"abandon", target :"idle"},
+
+                    Backspace: {
+                        actions: "removeLastPoint",
+                        cond: "plusDeDeuxPoints",
+                        target: "drawing",
+                        internal: true
+                    },
+                    
                     MOUSECLICK: [{
-                        target: "DRAWING",
+                        target: "drawing",
                         internal: true,
                         cond: "pasPlein",
-                        actions : "setLastPoint"
+                        actions : "addPoint"
                     }, {
-                        actions : "saveLine"
+                        actions : ["saveLine","addPoint"],
+                        target :"idle"
                     }],
 
-                    ENTER: {
+                    MOUSEMOVE: {
+                        actions:"setLastPoint",
+                        internal:true 
+                    }
+                    ,
+
+                    Enter: {
                         actions: "saveLine",
-                        cond: "plusDeDeuxPoints"
-                    },
+                        cond: "plusDeDeuxPoints",
+                        target: "idle",
+                        internal : true
 
-                    BACKSPACE: {
-                        actions: "removeLastPoint",
-                        cond: "plusDeDeuxPoints"
-                    },
-
-                    ESCAPE: 
-                    {actions:"abandon"}
+                    }
                 }
             }
-        }
-    },
+    }
+},
     // Quelques actions et guardes que vous pouvez utiliser dans votre machine
     {
         actions: {
@@ -117,7 +129,7 @@ const polylineMachine = createMachine(
             // On peut enlever un point
             plusDeDeuxPoints: (context, event) => {
                 // Deux coordonnées pour chaque point, plus le point provisoire
-                return polyline.points().length > 6;
+                return polyline.points().length > 4;
             },
         },
     }
